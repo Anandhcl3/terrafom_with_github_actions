@@ -1,4 +1,4 @@
-name: Plan / Apply On Merge
+name: Plan/Deploy Env
 
 on:
   # Allows you to run this workflow manually from the Actions tab
