@@ -47,11 +47,10 @@ jobs:
 
       - name: Initialize Terraform
         run: |
-          cd web-cluster-root-module
-          echo $pwd
+          cd web-cluster-root-module          
           terraform init -input=false
-          terraform state replace-provider -auto-approve "registry.terraform.io/-/aws" "hashicorp/aws"
-          terraform init -input=false
+          
+          
 
       - name: Plan Terraform
         id: plan
