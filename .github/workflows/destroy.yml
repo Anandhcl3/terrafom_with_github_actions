@@ -51,34 +51,7 @@ jobs:
           terraform init -input=false
 
 
-
-      - name: Plan Terraform
-        id: plan
-        continue-on-error: true
-        run: |
-          cd web-cluster-root-module
-          terraform plan -input=false -no-color -out=tfplan \
-          && terraform show -no-color tfplan
-
-      # Sed is taking all lines that begin with one or more spaces followed by a `+` or `-`.
-      # It stores the amount of spaces in `\1` and the +/- in `\2`.
-      # Then replace that portion of the line with `\2\1` (+/- followed by the number of matched spaces).
-      - name: Reformat Plan
-        if: steps.plan.outcome == 'success'
-        run: |
-          echo '${{ steps.plan.outputs.stdout || steps.plan.outputs.stderr }}' \
-          | sed -E 's/^([[:space:]]+)([-+])/\2\1/g' > plan.txt
-
-      - name: Put Plan in Env Var
-        if: steps.plan.outcome == 'success'
-        run: |
-          PLAN=$(cat plan.txt)
-          echo "PLAN<<EOF" >> $GITHUB_ENV
-          echo "$PLAN" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Destroy Terraform
-        if: steps.plan.outcome == 'success'
+      - name: Destroy Terraform      
         id: destroy
         continue-on-error: true
         run: |
