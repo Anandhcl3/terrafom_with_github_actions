@@ -1,9 +1,8 @@
 ame: Plan / Apply On Merge
 
 on:
-  push:
-    branches:
-      - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   inform_about_apply:
@@ -21,17 +20,14 @@ jobs:
             Results will display here momentarily...            
 
   plan_and_apply:
-    name: Plan and Apply
-    env:
-      TF_VAR_allowed_account_id: ${{ secrets.ALLOWED_ACCOUNT_ID }}
+    name: Plan and Apply    
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
         path:
           - dev
-          - stage
-          - prod
+          
 
     steps:
       - name: Check out code
@@ -45,7 +41,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-region: us-east-1
+          aws-region: ap-south-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -58,7 +54,7 @@ jobs:
         id: plan
         continue-on-error: true
         run: |
-          cd terraform/${{ matrix.path }}
+          cd web-cluster-root-module/${{ matrix.path }}
           terraform plan -input=false -no-color -out=tfplan \
           && terraform show -no-color tfplan          
 
@@ -84,7 +80,7 @@ jobs:
         id: apply
         continue-on-error: true
         run: |
-          cd terraform/${{ matrix.path }}
+          cd web-cluster-root-module/${{ matrix.path }}
           terraform apply \
             -input=false \
             -no-color \
