@@ -51,12 +51,11 @@ jobs:
           terraform init -input=false
 
 
-      - name: Destroy Terraform      
+      - name: Destroy Terraform
         id: destroy
         continue-on-error: true
         run: |
           cd web-cluster-root-module
-          terraform destroy \
+          terraform destroy -auto-approve \
             -input=false \
             -no-color \
-            tfplan
