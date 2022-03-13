@@ -1,26 +1,26 @@
-name: Plan / Apply On Merge
+name: Destroy Env
 
 on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  inform_about_apply:
-    name: Inform About Apply
+  inform_about_destroy:
+    name: Inform About Destroy
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Inform on PR that Apply is Running
+      - name: Inform on PR that Destroy is Running
         uses: mshick/add-pr-comment@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           repo-token-user-login: 'github-actions[bot]'
           message: |
-            ***Running terraform apply***
+            ***Running terraform destroy***
             Results will display here momentarily...
 
-  plan_and_apply:
-    name: Plan and Apply
+  plan_and_destroy:
+    name: Plan and Destroy
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
@@ -47,10 +47,10 @@ jobs:
 
       - name: Initialize Terraform
         run: |
-          cd web-cluster-root-module          
+          cd web-cluster-root-module
           terraform init -input=false
-          
-          
+
+
 
       - name: Plan Terraform
         id: plan
@@ -77,56 +77,13 @@ jobs:
           echo "$PLAN" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Apply Terraform
+      - name: Destroy Terraform
         if: steps.plan.outcome == 'success'
-        id: apply
+        id: destroy
         continue-on-error: true
         run: |
           cd web-cluster-root-module
-          terraform apply \
+          terraform destroy \
             -input=false \
             -no-color \
             tfplan
-
-      - name: Post Plan and Apply to GitHub PR
-        if: steps.plan.outcome == 'success' && steps.apply.outcome == 'success'
-        uses: mshick/add-pr-comment@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          repo-token-user-login: 'github-actions[bot]'
-          message: |
-            Applying **${{ matrix.path }}**:
-
-            ```diff
-            ${{ env.PLAN }}
-            ```
-
-            ```
-            ${{ steps.apply.outputs.stdout }}
-            ```
-
-      - name: Post Plan Failure
-        if: steps.plan.outcome == 'failure'
-        uses: mshick/add-pr-comment@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          repo-token-user-login: 'github-actions[bot]'
-          message: |
-            Plan failed for **${{ matrix.path }}**:
-
-            ```
-            ${{ steps.plan.outputs.stderr }}
-            ```
-
-      - name: Post Apply Failure
-        if: steps.apply.outcome == 'failure'
-        uses: mshick/add-pr-comment@v1
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          repo-token-user-login: 'github-actions[bot]'
-          message: |
-            Apply failed for **${{ matrix.path }}**:
-
-            ```
-            ${{ steps.apply.outputs.stderr }}
-            ```
